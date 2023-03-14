@@ -1,8 +1,11 @@
+use std::io::{stdout, Write};
+
 type OutputDigit = u8;  // increase if converting to higher (e.g. 1000) base
 type RadixDigit = u32;  // TODO: analyze when/if this could overflow
 
 fn main() {
-    const N_DIGITS: usize = 500;
+    const N_DIGITS: usize = 5000000;
+    let mut output_dest = stdout().lock();
     
     let arr_len = (10 * N_DIGITS / 3) + 1;
     let mut arr = vec![2 as RadixDigit; arr_len];
@@ -15,15 +18,16 @@ fn main() {
             return
         } else if outgoing < 9 {
             // HT: https://stackoverflow.com/a/35280799/179583
-            print!("{}{:9<2$}", first_held, "", num_held_nines);
+            write!(output_dest, "{}{:9<2$}", first_held, "", num_held_nines).unwrap();
             first_held = outgoing as OutputDigit;
         } else {
             assert!(outgoing == 10);
             assert!(first_held < 9);
-            print!("{}{:0<2$}", first_held + 1, "", num_held_nines);
+            write!(output_dest, "{}{:0<2$}", first_held + 1, "", num_held_nines).unwrap();
             first_held = 0;
         }
         num_held_nines = 0;
+        output_dest.flush().unwrap();
     };
     
     for _ in 0..N_DIGITS {
