@@ -14,17 +14,15 @@ fn main() {
             num_held_nines += 1;
             return
         } else if outgoing < 9 {
-            //print!(">{},{}<", first_held, num_held_nines);
             // HT: https://stackoverflow.com/a/35280799/179583
             print!("{}{:9<2$}", first_held, "", num_held_nines);
             first_held = outgoing as OutputDigit;
         } else {
             assert!(outgoing == 10);
             assert!(first_held < 9);
-            //print!(">{},{}<", first_held, num_held_nines);
             print!("{}{:0<2$}", first_held + 1, "", num_held_nines);
             first_held = 0;
-        } 
+        }
         num_held_nines = 0;
     };
     
