@@ -4,11 +4,11 @@ type OutputDigit = u8;  // increase if converting to higher (e.g. 1000) base
 type RadixDigit = u32;  // TODO: analyze when/if this could overflow
 
 fn main() {
-    const N_DIGITS: usize = 5000000;
+    const N_DIGITS: usize = 1000000;
     let mut output_dest = stdout().lock();
     
-    let arr_len = (10 * N_DIGITS / 3) + 1;
-    let mut arr = vec![2 as RadixDigit; arr_len];
+    const ARR_LEN: usize = (10 * N_DIGITS / 3) + 1;
+    let mut arr = vec![2 as RadixDigit; ARR_LEN];
     
     let mut first_held: OutputDigit = 0;
     let mut num_held_nines: usize = 0;
@@ -31,10 +31,10 @@ fn main() {
     };
     
     for _ in 0..N_DIGITS {
-        for a_idx in 0..arr_len {
+        for a_idx in 0..ARR_LEN {
             arr[a_idx] *= 10;
         }
-        for a_idx in (1..arr_len).rev() {
+        for a_idx in (1..ARR_LEN).rev() {
             // this stuff following my Python version for now
             let i: RadixDigit = (a_idx as RadixDigit) + 1;
             let modulo: RadixDigit = 2*i - 1;
