@@ -1,21 +1,21 @@
 use std::io::{stdout, Write};
 
-type OutputDigit = u8;  // increase if converting to higher (e.g. 1000) base
-type RadixDigit = u32;  // TODO: analyze when/if this could overflow
+type OutputDigit = u8; // increase if converting to higher (e.g. 1000) base
+type RadixDigit = u32; // TODO: analyze when/if this could overflow
 
 fn main() {
     const N_DIGITS: usize = 1000000;
     let mut output_dest = stdout().lock();
-    
+
     const ARR_LEN: usize = (10 * N_DIGITS / 3) + 1;
-    let mut arr = vec![2 as RadixDigit; ARR_LEN];
-    
+    let mut spigot = Spigot::new(0, ARR_LEN);
+
     let mut first_held: OutputDigit = 0;
     let mut num_held_nines: usize = 0;
     let mut push_for_release = |outgoing: RadixDigit| {
         if outgoing == 9 {
             num_held_nines += 1;
-            return
+            return;
         } else if outgoing < 9 {
             // HT: https://stackoverflow.com/a/35280799/179583
             write!(output_dest, "{}{:9<2$}", first_held, "", num_held_nines).unwrap();
@@ -29,25 +29,52 @@ fn main() {
         num_held_nines = 0;
         output_dest.flush().unwrap();
     };
-    
+
     for _ in 0..N_DIGITS {
-        for a_idx in 0..ARR_LEN {
-            arr[a_idx] *= 10;
-        }
-        for a_idx in (1..ARR_LEN).rev() {
-            // this stuff following my Python version for now
-            let i: RadixDigit = (a_idx as RadixDigit) + 1;
-            let modulo: RadixDigit = 2*i - 1;
-            let q = arr[a_idx] / modulo;
-            let r = arr[a_idx] % modulo;
-            arr[a_idx] = r;
-            arr[a_idx - 1] += q * (i - 1);
-        }
-        let q = arr[0] / 10;
-        let r = arr[0] % 10;
-        arr[0] = r;
-        push_for_release(q)
+        let q = spigot.process(0);
+        push_for_release(q);
     }
     push_for_release(0);
     println!("");
+}
+
+// see https://stackoverflow.com/questions/69051429/what-is-the-function-to-get-the-quotient-and-remainder-divmod-for-rust#comment122040171_69051429
+#[inline]
+fn divmod(a: RadixDigit, b: RadixDigit) -> (RadixDigit, RadixDigit) {
+    (a / b, a % b)
+}
+
+struct Spigot {
+    offset: usize,
+    array: Box<[RadixDigit]>,
+}
+
+impl Spigot {
+    fn new(offset: usize, size: usize) -> Self {
+        Self {
+            offset,
+            array: vec![2 as RadixDigit; size].into_boxed_slice(),
+        }
+    }
+
+    fn process(&mut self, incoming_carry: RadixDigit) -> RadixDigit {
+        let arr = &mut self.array;
+        let mut q = incoming_carry;
+        for (arr_idx, digit) in arr.iter_mut().enumerate().rev() {
+            let overall_idx = self.offset + arr_idx;
+            let (modulus, qumerator) = if overall_idx == 0 {
+                (10, 1)
+            } else {
+                let i = (overall_idx as RadixDigit) + 1;
+                (2 * i - 1, i - 1)
+            };
+            
+            let r: RadixDigit;
+            let adj_digit = *digit * 10 + q;
+            (q, r) = divmod(adj_digit, modulus);
+            q *= qumerator;
+            *digit = r;
+        }
+        q
+    }
 }
