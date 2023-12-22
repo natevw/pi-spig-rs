@@ -18,7 +18,7 @@ fn main() {
     for i in 0..N_WORK_THREADS {
         let (tx_self, rx_self) = mpsc::channel();
         thread::spawn(move || {
-            let spigot = Spigot::new(i * ARR_LEN_PER_THREAD, ARR_LEN_PER_THREAD);
+            let mut spigot = Spigot::new(i * ARR_LEN_PER_THREAD, ARR_LEN_PER_THREAD);
             for q_prev in rx_self {
                 let q_self = spigot.process(q_prev);
                 tx_next.send(q_self).unwrap();
@@ -26,9 +26,9 @@ fn main() {
         });
         tx_next = tx_self;
     }
-    thread::spawn(|| {
+    thread::spawn(move || {
         for _ in 0..N_DIGITS {
-            tx_next.send(0);
+            tx_next.send(0).unwrap();
         }
     });
     
