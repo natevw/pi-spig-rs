@@ -1,4 +1,4 @@
-use std::io::{stdout, Write};
+use std::{io::{stdout, Write}, thread, sync::mpsc};
 
 type OutputDigit = u8; // increase if converting to higher (e.g. 1000) base
 type RadixDigit = u32; // TODO: analyze when/if this could overflow
@@ -8,10 +8,31 @@ fn main() {
     let mut output_dest = stdout().lock();
 
     const ARR_LEN: usize = (10 * N_DIGITS / 3) + 1;
-    const SPLIT: usize = 99;
-    let mut spigot0 = Spigot::new(0, SPLIT);
-    let mut spigot1 = Spigot::new(SPLIT, ARR_LEN - SPLIT);
-
+    
+    
+    let (tx_main, rx_main) = mpsc::channel();
+    const N_WORK_THREADS: usize = 2;
+    const ARR_LEN_PER_THREAD: usize = ARR_LEN / N_WORK_THREADS;
+    
+    let mut tx_next = tx_main;
+    for i in 0..N_WORK_THREADS {
+        let (tx_self, rx_self) = mpsc::channel();
+        thread::spawn(move || {
+            let spigot = Spigot::new(i * ARR_LEN_PER_THREAD, ARR_LEN_PER_THREAD);
+            for q_prev in rx_self {
+                let q_self = spigot.process(q_prev);
+                tx_next.send(q_self).unwrap();
+            }
+        });
+        tx_next = tx_self;
+    }
+    thread::spawn(|| {
+        for _ in 0..N_DIGITS {
+            tx_next.send(0);
+        }
+    });
+    
+    
     let mut first_held: OutputDigit = 0;
     let mut num_held_nines: usize = 0;
     let mut push_for_release = |outgoing: RadixDigit| {
@@ -31,11 +52,9 @@ fn main() {
         num_held_nines = 0;
         output_dest.flush().unwrap();
     };
-
-    for _ in 0..N_DIGITS {
-        let q1 = spigot1.process(0);
-        let q0 = spigot0.process(q1);
-        push_for_release(q0);
+    
+    for q in rx_main {
+        push_for_release(q);
     }
     push_for_release(0);
     println!("");
