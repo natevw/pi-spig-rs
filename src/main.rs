@@ -8,7 +8,9 @@ fn main() {
     let mut output_dest = stdout().lock();
 
     const ARR_LEN: usize = (10 * N_DIGITS / 3) + 1;
-    let mut spigot = Spigot::new(0, ARR_LEN);
+    const SPLIT: usize = 99;
+    let mut spigot0 = Spigot::new(0, SPLIT);
+    let mut spigot1 = Spigot::new(SPLIT, ARR_LEN - SPLIT);
 
     let mut first_held: OutputDigit = 0;
     let mut num_held_nines: usize = 0;
@@ -31,8 +33,9 @@ fn main() {
     };
 
     for _ in 0..N_DIGITS {
-        let q = spigot.process(0);
-        push_for_release(q);
+        let q1 = spigot1.process(0);
+        let q0 = spigot0.process(q1);
+        push_for_release(q0);
     }
     push_for_release(0);
     println!("");
