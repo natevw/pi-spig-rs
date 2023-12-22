@@ -34,7 +34,7 @@ fn main() {
             exit_with_usage(-1);
         }
     }
-        
+    
     let mut output_dest = stdout().lock();
     let (tx_main, rx_main) = mpsc::channel();
     
@@ -59,31 +59,11 @@ fn main() {
         }
     });
     
-    
-    let mut first_held: OutputDigit = 0;
-    let mut num_held_nines: usize = 0;
-    let mut push_for_release = |outgoing: RadixDigit| {
-        if outgoing == 9 {
-            num_held_nines += 1;
-            return;
-        } else if outgoing < 9 {
-            // HT: https://stackoverflow.com/a/35280799/179583
-            write!(output_dest, "{}{:9<2$}", first_held, "", num_held_nines).unwrap();
-            first_held = outgoing as OutputDigit;
-        } else {
-            assert!(outgoing == 10);
-            assert!(first_held < 9);
-            write!(output_dest, "{}{:0<2$}", first_held + 1, "", num_held_nines).unwrap();
-            first_held = 0;
-        }
-        num_held_nines = 0;
-        output_dest.flush().unwrap();
-    };
-    
+    let mut display = OutputDisplay::new(&mut output_dest);
     for q in rx_main {
-        push_for_release(q);
+        display.push_for_release(q);
     }
-    push_for_release(0);
+    display.push_for_release(0);
     println!("");
 }
 
@@ -125,5 +105,37 @@ impl Spigot {
             *digit = r;
         }
         q
+    }
+}
+
+struct OutputDisplay<'w> {
+    output: &'w mut dyn Write,
+    first_held: OutputDigit,
+    num_held_nines: usize,
+}
+
+impl<'w> OutputDisplay<'w> {
+    fn new(destination: &'w mut dyn Write) -> Self {
+        Self { output: destination, first_held: 0, num_held_nines: 0 }
+    }
+    
+    fn push_for_release(&mut self, outgoing: RadixDigit) {
+        let nh9 = &mut self.num_held_nines;
+        let fh = &mut self.first_held;
+        if outgoing == 9 {
+            *nh9 += 1;
+            return;
+        } else if outgoing < 9 {
+            // HT: https://stackoverflow.com/a/35280799/179583
+            write!(self.output, "{}{:9<2$}", *fh, "", *nh9).unwrap();
+            *fh = outgoing as OutputDigit;
+        } else {
+            assert!(outgoing == 10);
+            assert!(*fh < 9);
+            write!(self.output, "{}{:0<2$}", *fh + 1, "", *nh9).unwrap();
+            *fh = 0;
+        }
+        *nh9 = 0;
+        self.output.flush().unwrap();
     }
 }
