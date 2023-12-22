@@ -1,24 +1,51 @@
-use std::{io::{stdout, Write}, thread, sync::mpsc};
+use std::{io::{stdout, Write}, thread, sync::mpsc, env, process};
 
 type OutputDigit = u8; // increase if converting to higher (e.g. 1000) base
 type RadixDigit = u32; // TODO: analyze when/if this could overflow
 
-fn main() {
-    const N_DIGITS: usize = 1000000;
-    let mut output_dest = stdout().lock();
+fn exit_with_usage(code: i32) -> ! {
+    eprintln!("Usage: pi-spig-rs {{<n_digits>}} {{<n_threads>}}");
+    process::exit(code);
+}
 
-    const ARR_LEN: usize = (10 * N_DIGITS / 3) + 1;
-    
-    
+fn main() {
+    let n_digits: usize;
+    let n_threads: usize;
+    let args: Vec<String> = env::args().skip(1).collect();
+    match args.len() {
+        2 => {
+            n_digits = match args[0].parse() {
+                Ok(n) => n,
+                Err(_) => {
+                    eprintln!("Expected integer n_digits");
+                    exit_with_usage(1);
+                },
+            };
+            n_threads = match args[1].parse() {
+                Ok(n) => n,
+                Err(_) => {
+                    eprintln!("Expected integer n_threads");
+                    exit_with_usage(1);
+                },
+            };
+        }
+        _ => {
+            //print!("args: {:#?}", args);
+            exit_with_usage(-1);
+        }
+    }
+        
+    let mut output_dest = stdout().lock();
     let (tx_main, rx_main) = mpsc::channel();
-    const N_WORK_THREADS: usize = 2;
-    const ARR_LEN_PER_THREAD: usize = ARR_LEN / N_WORK_THREADS;
+    
+    let arr_len: usize = (10 * n_digits / 3) + 1;
+    let arr_len_per_thread: usize = arr_len / n_threads;
     
     let mut tx_next = tx_main;
-    for i in 0..N_WORK_THREADS {
+    for i in 0..n_threads {
         let (tx_self, rx_self) = mpsc::channel();
         thread::spawn(move || {
-            let mut spigot = Spigot::new(i * ARR_LEN_PER_THREAD, ARR_LEN_PER_THREAD);
+            let mut spigot = Spigot::new(i * arr_len_per_thread, arr_len_per_thread);
             for q_prev in rx_self {
                 let q_self = spigot.process(q_prev);
                 tx_next.send(q_self).unwrap();
@@ -27,7 +54,7 @@ fn main() {
         tx_next = tx_self;
     }
     thread::spawn(move || {
-        for _ in 0..N_DIGITS {
+        for _ in 0..n_digits {
             tx_next.send(0).unwrap();
         }
     });
