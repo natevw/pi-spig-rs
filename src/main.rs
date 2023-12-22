@@ -1,4 +1,10 @@
-use std::{io::{stdout, Write}, thread, sync::mpsc, env, process};
+use std::{
+    env,
+    io::{stdout, Write},
+    process,
+    sync::mpsc,
+    thread,
+};
 
 type OutputDigit = u8; // increase if converting to higher (e.g. 1000) base
 type RadixDigit = u32; // TODO: analyze when/if this could overflow
@@ -19,14 +25,14 @@ fn main() {
                 Err(_) => {
                     eprintln!("Expected integer n_digits");
                     exit_with_usage(1);
-                },
+                }
             };
             n_threads = match args[1].parse() {
                 Ok(n) => n,
                 Err(_) => {
                     eprintln!("Expected integer n_threads");
                     exit_with_usage(1);
-                },
+                }
             };
         }
         _ => {
@@ -34,13 +40,13 @@ fn main() {
             exit_with_usage(-1);
         }
     }
-    
+
     let mut output_dest = stdout().lock();
     let (tx_main, rx_main) = mpsc::channel();
-    
+
     let arr_len: usize = (10 * n_digits / 3) + 1;
     let arr_len_per_thread: usize = arr_len / n_threads;
-    
+
     let mut tx_next = tx_main;
     for i in 0..n_threads {
         let (tx_self, rx_self) = mpsc::channel();
@@ -58,7 +64,7 @@ fn main() {
             tx_next.send(0).unwrap();
         }
     });
-    
+
     let mut display = OutputDisplay::new(&mut output_dest);
     for q in rx_main {
         display.push_for_release(q);
@@ -97,7 +103,7 @@ impl Spigot {
                 let i = (overall_idx as RadixDigit) + 1;
                 (2 * i - 1, i - 1)
             };
-            
+
             let r: RadixDigit;
             let adj_digit = *digit * 10 + q;
             (q, r) = divmod(adj_digit, modulus);
@@ -116,9 +122,13 @@ struct OutputDisplay<'w> {
 
 impl<'w> OutputDisplay<'w> {
     fn new(destination: &'w mut dyn Write) -> Self {
-        Self { output: destination, first_held: 0, num_held_nines: 0 }
+        Self {
+            output: destination,
+            first_held: 0,
+            num_held_nines: 0,
+        }
     }
-    
+
     fn push_for_release(&mut self, outgoing: RadixDigit) {
         let nh9 = &mut self.num_held_nines;
         let fh = &mut self.first_held;
