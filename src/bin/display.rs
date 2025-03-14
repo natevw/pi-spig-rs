@@ -1,4 +1,4 @@
-use pi_spig_rs::{display, types};
+use pi_spig_rs::{comms, display};
 use std::{env, io::stdout, io::Read, net::TcpListener, process};
 
 fn exit_with_usage(code: i32) -> ! {
@@ -7,17 +7,9 @@ fn exit_with_usage(code: i32) -> ! {
 }
 
 fn display_from(src: &mut impl Read) {
-    let values = std::iter::from_fn(move || {
-        let mut buffer = [0u8; std::mem::size_of::<types::RadixDigit>()];
-        match src.read_exact(&mut buffer) {
-            Ok(_) => Some(types::RadixDigit::from_be_bytes(buffer)),
-            Err(_) => None,
-        }
-    });
-
     let mut output_dest = stdout().lock();
     let mut display = display::OutputDisplay::new(&mut output_dest);
-    for q in values {
+    for q in comms::read_all(src) {
         display.push_for_release(q);
     }
     display.push_for_release(0);

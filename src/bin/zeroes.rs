@@ -1,5 +1,5 @@
-use pi_spig_rs::types;
-use std::{env, io::Write, net::TcpStream, process};
+use pi_spig_rs::comms;
+use std::{env, net::TcpStream, process};
 
 fn exit_with_usage(code: i32) -> ! {
     eprintln!("Usage: pi-spig-zeroes <addr> <count>");
@@ -27,9 +27,8 @@ fn main() {
         }
     }
 
-    let buffer = [0u8; std::mem::size_of::<types::RadixDigit>()];
     let mut socket = TcpStream::connect(addr).unwrap();
     for _ in 0..count {
-        socket.write(&buffer).unwrap();
+        comms::send_one(&mut socket, 0);
     }
 }
