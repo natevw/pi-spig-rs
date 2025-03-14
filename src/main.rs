@@ -13,9 +13,10 @@ fn exit_with_usage(code: i32) -> ! {
 fn display_from(src: &mut impl Read) {
   let values = std::iter::from_fn(move || {
     let mut buffer = [0; std::mem::size_of::<types::RadixDigit>()];
-    src.read_exact(&mut buffer).unwrap();
-    let n = types::RadixDigit::from_be_bytes(buffer);
-    Some(n)
+    match src.read_exact(&mut buffer) {
+        Ok(_) => Some(types::RadixDigit::from_be_bytes(buffer)),
+        Err(_) => None,
+    }
   });
   
   for v in values {
