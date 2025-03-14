@@ -1,4 +1,4 @@
-use pi_spig_rs::{types, display};
+use pi_spig_rs::{display, types};
 use std::{env, io::stdout, io::Read, net::TcpListener, process};
 
 fn exit_with_usage(code: i32) -> ! {
