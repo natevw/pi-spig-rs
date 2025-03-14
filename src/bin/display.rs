@@ -1,7 +1,5 @@
+use pi_spig_rs::{types, display};
 use std::{env, io::stdout, io::Read, net::TcpListener, process};
-
-mod display;
-mod types;
 
 fn exit_with_usage(code: i32) -> ! {
     eprintln!("Usage: pi-spig-display <port>");
