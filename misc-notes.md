@@ -10,3 +10,18 @@ How I'm testing:
 Should test it in `--release` but note that this won't panic on overflow:
 
 <https://doc.rust-lang.org/book/ch03-02-data-types.html#integer-overflow>
+
+
+## Network version
+
+```
+cargo build
+(
+  trap 'kill 0' SIGINT
+  target/debug/output 3000 &
+  sleep 1; target/debug/worker localhost:3000 3001 0 999 &
+  sleep 1; target/debug/zeroes localhost:3001 999 &
+)
+```
+
+HT: <https://stackoverflow.com/a/52033580>

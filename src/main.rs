@@ -1,8 +1,5 @@
+use pi_spig_rs::{display, spigot};
 use std::{env, io::stdout, process, sync::mpsc, thread};
-
-mod display;
-mod spigot;
-mod types;
 
 fn exit_with_usage(code: i32) -> ! {
     eprintln!("Usage: pi-spig-rs {{<n_digits>}} {{<n_threads>}}");
