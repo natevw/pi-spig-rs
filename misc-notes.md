@@ -19,8 +19,10 @@ cargo build
 (
   trap 'kill 0' SIGINT
   target/debug/output 3000 &
-  sleep 1; target/debug/worker localhost:3000 3001 0 999 &
-  sleep 1; target/debug/zeroes localhost:3001 999 &
+  sleep 1; target/debug/worker localhost:3000 3001 0 100 &
+  sleep 2; target/debug/worker localhost:3001 3002 100 100 &
+  sleep 3; target/debug/zeroes localhost:3002 59 &    # n = 0.3 * (l - 1)
+  wait
 )
 ```
 
