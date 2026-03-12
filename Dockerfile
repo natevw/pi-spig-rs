@@ -5,6 +5,7 @@
 # systemctl --user start dbus   # via https://github.com/containers/podman/issues/12983#issuecomment-1320376753
 # podman build -t spig .
 # podman run spig
+# podman save spig > spig-img.tar
 
 
 FROM docker.io/library/rust:1-alpine AS build
@@ -20,10 +21,11 @@ RUN --mount=type=bind,source=src,target=/app/src \
 
 
 FROM docker.io/library/alpine:3 AS final
+#FROM scratch AS final    # also works, just comment out `adduser` below!
 COPY --from=build /app/.install/bin/ /app/
 ARG UID=10001
 RUN adduser --disabled-password --no-create-home --uid "${UID}" appuser
-USER appuser
+USER $UID
 EXPOSE 8000
 ENTRYPOINT ["/app/pi-spig-rs"]
 CMD ["100", "2"]
