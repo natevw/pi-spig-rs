@@ -12,7 +12,9 @@
 # scp spig-img.tar pi@turing-node-0.lan:
 #  sudo k3s ctr images import spig-img.tar
 #    sudo k3s crictl images
-#    kubectl run spig --image=localhost/spig --image-pull-policy=Never
+#    kubectl delete pod spig
+#    kubectl run spig --image=localhost/spig --image-pull-policy=Never --restart=OnFailure
+#    kubectl get pods
 #    kubectl logs spig
 
 
