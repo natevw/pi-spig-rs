@@ -6,7 +6,7 @@
 # podman build .
 
 
-ARG RUST_VERSION=1.92
+ARG RUST_VERSION=1.94
 ARG APP_NAME=pi-spig-rs
 
 FROM docker.io/library/rust:${RUST_VERSION}-alpine AS build
