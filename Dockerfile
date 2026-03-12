@@ -13,9 +13,9 @@ FROM docker.io/library/rust:${RUST_VERSION}-alpine AS build
 RUN apk add --no-cache clang lld musl-dev git
 ARG APP_NAME
 WORKDIR /app
-RUN --mount=type=bind,source=src,target=src \
-    --mount=type=bind,source=Cargo.toml,target=Cargo.toml \
-    --mount=type=bind,source=Cargo.lock,target=Cargo.lock \
+RUN --mount=type=bind,source=src,target=/app/src \
+    --mount=type=bind,source=Cargo.toml,target=/app/Cargo.toml \
+    --mount=type=bind,source=Cargo.lock,target=/app/Cargo.lock \
     --mount=type=cache,target=/app/target/ \
     --mount=type=cache,target=/usr/local/cargo/git/db \
     --mount=type=cache,target=/usr/local/cargo/registry/ \
