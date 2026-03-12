@@ -3,13 +3,21 @@
 # USAGE:
 # sudo apt install podman crun  # via https://wiki.debian.org/Podman
 # systemctl --user start dbus   # via https://github.com/containers/podman/issues/12983#issuecomment-1320376753
-# podman build -t spig .
-# podman run spig
+
+# sudo apt install qemu-user
+# sudo podman run --privileged --rm docker.io/tonistiigi/binfmt --install all
+# podman build --platform=linux/arm/7 -t spig .
+#    podman run spig
 # podman save spig > spig-img.tar
+# scp spig-img.tar pi@turing-node-0.lan:
+#  sudo k3s ctr images import spig-img.tar
+#    sudo k3s crictl images
+#    kubectl run spig --image=localhost/spig --image-pull-policy=Never
+#    kubectl logs spig
 
 
-FROM docker.io/library/rust:1-alpine AS build
-RUN apk add --no-cache clang lld musl-dev git
+FROM docker.io/library/rust:1-slim-trixie AS build
+#RUN apk add --no-cache clang lld musl-dev git
 WORKDIR /app
 RUN --mount=type=bind,source=src,target=/app/src \
     --mount=type=bind,source=Cargo.toml,target=/app/Cargo.toml \
