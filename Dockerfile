@@ -18,6 +18,8 @@
 #    kubectl logs spig
 
 
+# TODO: https://jakewharton.com/cross-compiling-static-rust-binaries-in-docker-for-raspberry-pi/
+
 FROM docker.io/library/rust:1-slim-trixie AS build
 #RUN apk add --no-cache clang lld musl-dev git
 WORKDIR /app
