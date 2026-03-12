@@ -25,4 +25,5 @@ ARG UID=10001
 RUN adduser --disabled-password --no-create-home --uid "${UID}" appuser
 USER appuser
 EXPOSE 8000
-CMD ["/app/pi-spig-rs"]
+ENTRYPOINT ["/app/pi-spig-rs"]
+CMD ["100", "2"]
