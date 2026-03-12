@@ -6,10 +6,9 @@
 # podman build .
 
 
-ARG RUST_VERSION=1.94
 ARG APP_NAME=pi-spig-rs
 
-FROM docker.io/library/rust:${RUST_VERSION}-alpine AS build
+FROM docker.io/library/rust:1-alpine AS build
 RUN apk add --no-cache clang lld musl-dev git
 ARG APP_NAME
 WORKDIR /app
@@ -23,7 +22,7 @@ RUN --mount=type=bind,source=src,target=/app/src \
     cp ./target/release/$APP_NAME /bin/server
 
 
-FROM docker.io/library/alpine:3.18 AS final
+FROM docker.io/library/alpine:3 AS final
 COPY --from=build /bin/server /bin/
 ARG UID=10001
 RUN adduser --disabled-password --no-create-home --uid "${UID}" appuser
