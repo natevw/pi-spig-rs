@@ -1,0 +1,31 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: pi-calc
+spec:
+  completions: 5
+  parallelism: 5
+  completionMode: Indexed
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: worker
+          image: localhost/spig:latest
+          imagePullPolicy: Never
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              TOTAL=100
+              NODES=5
+              CHUNK=$((TOTAL / NODES))
+              START=$((INDEX * CHUNK))
+              END=$((START + CHUNK))
+              
+              # for now just calculate num digits based on job…
+              exec /app/pi-spig-rs $INDEX 1
+          env:
+            - name: INDEX
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.annotations['batch.kubernetes.io/job-completion-index']
