@@ -10,6 +10,8 @@
 #    podman run spig
 # podman save spig > spig-img.tar
 # scp spig-img.tar pi@turing-node-0.lan:
+#       # new option via https://docs.k3s.io/add-ons/import-images?import-images=Offline+image+importing
+#  sudo cp spig-img.tar /var/lib/rancher/k3s/agent/images
 #  sudo k3s ctr images import spig-img.tar
 #    sudo k3s crictl images
 #    kubectl delete pod spig
