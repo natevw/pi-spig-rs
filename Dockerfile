@@ -9,11 +9,8 @@
 # podman build --platform=linux/arm/7 -t spig .
 #    podman run spig
 # podman save spig > spig-img.tar
-# scp spig-img.tar pi@turing-node-0.lan:
-#       # new option via https://docs.k3s.io/add-ons/import-images?import-images=Offline+image+importing
-#       # enhance with https://askubuntu.com/questions/208378/how-do-i-copy-files-that-need-root-access-with-scp/872537#872537
-#  sudo cp spig-img.tar /var/lib/rancher/k3s/agent/images
-#  sudo k3s ctr images import spig-img.tar
+# cat spig-img.tar | ssh pi@turing-node-x.lan "sudo k3s ctr images import -"
+#    # cf. https://github.com/k3s-io/k3s/issues/213
 #    sudo k3s crictl images
 #    kubectl delete pod spig
 #    kubectl run spig --image=localhost/spig --image-pull-policy=Never --restart=OnFailure
