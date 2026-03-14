@@ -1,9 +1,10 @@
 # kubectl delete job/pi-calc
-# kubectl apply -f -   # paste in, then ^D
+# kubectl apply -f -
+#   [paste in, then ^D]
 # kubectl logs job/pi-calc --all-pods=true
 # kubectl get pods -o wide
 
-# kubectl run -it --rm test --image=docker.io/library/debian:trixie-slim
+# kubectl run -it --rm test --image=busybox
 #   apt update; apt install iputils-ping
 #   ping pi-calc-0.calculators
 
@@ -47,7 +48,7 @@ spec:
               sleep $(( INDEX * 2 ))
               
               piPort=31415
-              prevHost="pi-calc-$(( INDEX - 1 ))"
+              prevHost="pi-calc-$(( INDEX - 1 )).calculators"
               if [ "$INDEX" -eq 0 ]; then
                 exec /app/output $piPort
               elif [ "$INDEX" -eq "$NUM_WORKERS" ]; then
