@@ -1,7 +1,11 @@
 # kubectl delete job/pi-calc; kubectl apply -f -
 #   [paste in, then ^D]
+# kubectl logs --timestamps -f $(kubectl get pods -l job-name=pi-calc -o jsonpath='{.items[0].metadata.name}')
 # kubectl logs job/pi-calc --all-pods=true
 # kubectl get pods -o wide
+
+# HT: https://stackoverflow.com/questions/62264658/filter-kubectl-get-based-on-annotation/62267578#62267578
+#kubectl get pod -o=jsonpath='{.items[?(@.spec.template.metadata.annotations.batch\.kubernetes\.io/job-completion-index==0)].metadata.name}'
 
 # kubectl run -it --rm test --image=busybox
 #   apt update; apt install iputils-ping
@@ -22,8 +26,8 @@ kind: Job
 metadata:
   name: pi-calc
 spec:
-  completions: 4  # should be `NUM_WORKERS + 2`
-  parallelism: 4  # must match `completions`
+  completions: 6  # should be `NUM_WORKERS + 2`
+  parallelism: 6  # must match `completions`
   completionMode: Indexed
   template:
     spec:
@@ -49,21 +53,23 @@ spec:
               piPort=31415
               prevHost="pi-calc-$(( INDEX - 1 )).calculators"
               if [ "$INDEX" -eq 0 ]; then
-                exec /app/output $piPort
+                exec /app/output $piPort | fold -w100
               elif [ "$INDEX" -eq "$(( NUM_WORKERS + 1 ))" ]; then
                 totalWorkSize=$(( DIGITS_PER_WORKER * NUM_WORKERS ))
+                echo Sending $totalWorkSize zeroes to $prevHost
                 exec /app/zeroes $prevHost:$piPort $totalWorkSize
               else
                 workSize=$DIGITS_PER_WORKER
                 workIdx=$(( INDEX - 1 ))
                 workOffset=$(( workIdx * workSize ))
+                echo Sending $workSize @ $workOffset to $prevHost
                 exec /app/worker $prevHost:$piPort $piPort $workOffset $workSize
               fi
           env:
             - name: NUM_WORKERS
-              value: "2"
+              value: "4"
             - name: DIGITS_PER_WORKER
-              value: "42"
+              value: "10"
             - name: INDEX
               valueFrom:
                 fieldRef:
