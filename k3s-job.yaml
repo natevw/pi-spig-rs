@@ -1,5 +1,4 @@
-# kubectl delete job/pi-calc
-# kubectl apply -f -
+# kubectl delete job/pi-calc; kubectl apply -f -
 #   [paste in, then ^D]
 # kubectl logs job/pi-calc --all-pods=true
 # kubectl get pods -o wide
@@ -31,6 +30,8 @@ spec:
       # via https://kubernetes.io/docs/tasks/job/job-with-pod-to-pod-communication/
       subdomain: calculators
       restartPolicy: Never
+      nodeSelector:
+        localreg: ready
       containers:
         - name: worker
           image: turing-node-x.lan:5000/spig
@@ -42,8 +43,6 @@ spec:
               # … — worker
               # N — zeroes
               
-              sleep 1000
-              
               # HACK: each worker depends on the prior being ready already
               sleep $(( INDEX * 2 ))
               
@@ -51,7 +50,7 @@ spec:
               prevHost="pi-calc-$(( INDEX - 1 )).calculators"
               if [ "$INDEX" -eq 0 ]; then
                 exec /app/output $piPort
-              elif [ "$INDEX" -eq "$NUM_WORKERS" ]; then
+              elif [ "$INDEX" -eq "$(( NUM_WORKERS + 1 ))" ]; then
                 totalWorkSize=$(( DIGITS_PER_WORKER * NUM_WORKERS ))
                 exec /app/zeroes $prevHost:$piPort $totalWorkSize
               else

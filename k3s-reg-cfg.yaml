@@ -2,6 +2,12 @@
 # sudo vi /etc/rancher/k3s/registries.yaml
 # sudo systemctl restart k3s-agent
 
+
+# kubectl label nodes turing-node-0.lan localreg=ready
+# kubectl label nodes turing-node-1.lan localreg=ready
+
+
+
 mirrors:
   turing-node-x.lan:5000:
     endpoint:
