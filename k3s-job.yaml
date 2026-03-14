@@ -1,6 +1,7 @@
 # kubectl delete job/pi-calc; kubectl apply -f -
 #   [paste in, then ^D]
 # kubectl logs --timestamps -f $(kubectl get pods -l job-name=pi-calc -o jsonpath='{.items[0].metadata.name}')
+# kubectl logs $(kubectl get pods -l job-name=pi-calc -o jsonpath='{.items[0].metadata.name}')
 # kubectl logs job/pi-calc --all-pods=true
 # kubectl get pods -o wide
 
