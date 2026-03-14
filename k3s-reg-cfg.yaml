@@ -1,0 +1,13 @@
+# sudo mkdir -p /etc/rancher/k3s
+# sudo vi /etc/rancher/k3s/registries.yaml
+# sudo systemctl restart k3s-agent
+
+mirrors:
+  turing-node-x.lan:5000:
+    endpoint:
+      - "http://turing-node-x.lan:5000"
+
+configs:
+  my-insecure-registry.example.com:5000:
+    tls:
+      insecure_skip_verify: true

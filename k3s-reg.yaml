@@ -44,6 +44,7 @@ spec:
   type: ClusterIP
 
 
+# use ingress… or just the ports
 # kubectl port-forward --address 0.0.0.0 svc/registry-service 5000
 # curl registry-service.default.svc.cluster.local:5000/v2/_catalog  # only in cluster…
 #

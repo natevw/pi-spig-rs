@@ -8,6 +8,8 @@
 # sudo podman run --privileged --rm docker.io/tonistiigi/binfmt --install all
 # podman build --platform=linux/arm/7 -t spig .
 #    podman run spig
+# podman push --tls-verify=false spig turing-node-x.lan:5000/spig
+#  kubectl port-forward --address 0.0.0.0 svc/registry-service 5000
 # podman save spig > spig-img.tar
 # cat spig-img.tar | ssh pi@turing-node-x.lan "sudo k3s ctr images import -"
 #    # cf. https://github.com/k3s-io/k3s/issues/213
