@@ -1,3 +1,5 @@
+# cat k3s-job.yaml | ssh pi@turing-node-x.lan "kubectl delete job/pi-calc; kubectl apply -f -"
+#
 # kubectl delete job/pi-calc; kubectl apply -f -
 #   [paste in, then ^D]
 # kubectl logs --timestamps -f $(kubectl get pods -l job-name=pi-calc -o jsonpath='{.items[0].metadata.name}')
@@ -36,10 +38,10 @@ spec:
       subdomain: calculators
       restartPolicy: Never
       nodeSelector:
-        localreg: ready
+        tupi: worker
       containers:
         - name: worker
-          image: turing-node-x.lan:5000/spig
+          image: turing-node-x.lan:30303/spig
           command: ["/bin/sh", "-c"]
           args:
             - |
