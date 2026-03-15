@@ -64,8 +64,9 @@ spec:
                 exec /app/output $piPort | fold -w100
               elif [ "$INDEX" -eq "$(( NUM_WORKERS + 1 ))" ]; then
                 totalWorkSize=$(( DIGITS_PER_WORKER * NUM_WORKERS ))
-                echo Sending $totalWorkSize zeroes to $prevHost
-                exec /app/zeroes $prevHost:$piPort $totalWorkSize
+                generatedDigits=$(( 3 * (totalWorkSize - 1) / 10 ))
+                echo Sending $generatedDigits zeroes to $prevHost
+                exec /app/zeroes $prevHost:$piPort $generatedDigits
               else
                 workSize=$DIGITS_PER_WORKER
                 workIdx=$(( INDEX - 1 ))
