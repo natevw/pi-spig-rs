@@ -51,7 +51,7 @@ spec:
               # N — zeroes
               
               # HACK: each worker depends on the prior being ready already
-              sleep $(( INDEX * 2 ))
+              sleep $(( INDEX * 5 ))
               
               piPort=31415
               prevHost="pi-calc-$(( INDEX - 1 )).calculators"
