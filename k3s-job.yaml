@@ -1,5 +1,10 @@
 # cat k3s-job.yaml | ssh pi@turing-node-x.lan "kubectl delete job/pi-calc; kubectl apply -f -"
 #
+# scp k3s-job.yaml pi@turing-node-x.lan:pi-job.yaml
+#  kubectl apply -f pi-job.yaml
+#  kubectl logs --timestamps --follow --max-log-requests=9 job/pi-calc --all-pods=true
+#
+#
 # kubectl delete job/pi-calc; kubectl apply -f -
 #   [paste in, then ^D]
 # kubectl logs --timestamps -f $(kubectl get pods -l job-name=pi-calc -o jsonpath='{.items[0].metadata.name}')
@@ -29,8 +34,8 @@ kind: Job
 metadata:
   name: pi-calc
 spec:
-  completions: 6  # should be `NUM_WORKERS + 2`
-  parallelism: 6  # must match `completions`
+  completions: 9  # should be `NUM_WORKERS + 2`
+  parallelism: 9  # must match `completions`
   completionMode: Indexed
   template:
     spec:
@@ -51,7 +56,7 @@ spec:
               # N — zeroes
               
               # HACK: each worker depends on the prior being ready already
-              sleep $(( INDEX * 5 ))
+              sleep $(( INDEX * 2 ))
               
               piPort=31415
               prevHost="pi-calc-$(( INDEX - 1 )).calculators"
@@ -70,9 +75,9 @@ spec:
               fi
           env:
             - name: NUM_WORKERS
-              value: "4"
+              value: "7"
             - name: DIGITS_PER_WORKER
-              value: "10"
+              value: "1000000"
             - name: INDEX
               valueFrom:
                 fieldRef:
