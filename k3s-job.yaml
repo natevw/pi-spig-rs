@@ -1,0 +1,84 @@
+# cat k3s-job.yaml | ssh pi@turing-node-x.lan "kubectl delete job/pi-calc; kubectl apply -f -"
+#
+# scp k3s-job.yaml pi@turing-node-x.lan:pi-job.yaml
+#  kubectl apply -f pi-job.yaml
+#  kubectl logs --timestamps --follow --max-log-requests=9 job/pi-calc --all-pods=true
+#
+#
+# kubectl delete job/pi-calc; kubectl apply -f -
+#   [paste in, then ^D]
+# kubectl logs --timestamps -f $(kubectl get pods -l job-name=pi-calc -o jsonpath='{.items[0].metadata.name}')
+# kubectl logs $(kubectl get pods -l job-name=pi-calc -o jsonpath='{.items[0].metadata.name}')
+# kubectl logs job/pi-calc --all-pods=true
+# kubectl get pods -o wide
+
+# HT: https://stackoverflow.com/questions/62264658/filter-kubectl-get-based-on-annotation/62267578#62267578
+#kubectl get pod -o=jsonpath='{.items[?(@.spec.template.metadata.annotations.batch\.kubernetes\.io/job-completion-index==0)].metadata.name}'
+
+# kubectl run -it --rm test --image=busybox
+#   apt update; apt install iputils-ping
+#   ping pi-calc-0.calculators
+
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: calculators
+spec:
+  clusterIP: None  # (headless)
+  selector:
+    job-name: pi-calc
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: pi-calc
+spec:
+  completions: 9  # should be `NUM_WORKERS + 2`
+  parallelism: 9  # must match `completions`
+  completionMode: Indexed
+  template:
+    spec:
+      # via https://kubernetes.io/docs/tasks/job/job-with-pod-to-pod-communication/
+      subdomain: calculators
+      restartPolicy: Never
+      nodeSelector:
+        tupi: worker
+      containers:
+        - name: worker
+          image: turing-node-x.lan:30303/spig
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              # INDEX:
+              # 0 — output
+              # … — worker
+              # N — zeroes
+              
+              # HACK: each worker depends on the prior being ready already
+              sleep $(( INDEX * 2 ))
+              
+              piPort=31415
+              prevHost="pi-calc-$(( INDEX - 1 )).calculators"
+              if [ "$INDEX" -eq 0 ]; then
+                exec /app/output $piPort | fold -w100
+              elif [ "$INDEX" -eq "$(( NUM_WORKERS + 1 ))" ]; then
+                totalWorkSize=$(( DIGITS_PER_WORKER * NUM_WORKERS ))
+                echo Sending $totalWorkSize zeroes to $prevHost
+                exec /app/zeroes $prevHost:$piPort $totalWorkSize
+              else
+                workSize=$DIGITS_PER_WORKER
+                workIdx=$(( INDEX - 1 ))
+                workOffset=$(( workIdx * workSize ))
+                echo Sending $workSize @ $workOffset to $prevHost
+                exec /app/worker $prevHost:$piPort $piPort $workOffset $workSize
+              fi
+          env:
+            - name: NUM_WORKERS
+              value: "7"
+            - name: DIGITS_PER_WORKER
+              value: "1000000"
+            - name: INDEX
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.annotations['batch.kubernetes.io/job-completion-index']
